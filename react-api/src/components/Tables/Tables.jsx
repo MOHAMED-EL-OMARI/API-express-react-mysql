@@ -68,7 +68,7 @@ const Tables = () => {
 
         try {
             const response = await fetch(
-                "http://localhost:5000/api/generate-api",
+                "http://localhost:5000/api/createApi",
                 {
                     method: "POST",
                     headers: {
