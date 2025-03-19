@@ -34,7 +34,8 @@ const DatabaseConnection = () => {
         };
 
         try {
-            const response = await fetch("http://localhost:5000/api/connect", {
+            // First, test the connection
+            const connectResponse = await fetch("http://localhost:5000/api/connect", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -43,24 +44,38 @@ const DatabaseConnection = () => {
                 body: JSON.stringify(data),
             });
 
-            const result = await response.json();
+            const connectResult = await connectResponse.json();
 
-            if (response.ok) {
-                setMessage("Connection successful!");
-                // Store connection info in sessionStorage if needed
-                sessionStorage.setItem("dbConnection", JSON.stringify(data));
-                // Navigate to tables page after successful connection
-                setTimeout(() => {
-                    navigate("/tables");
-                }, 1000);
+            if (connectResponse.ok) {
+                // If connection successful, store the connection details
+                const storeResponse = await fetch("http://localhost:5000/api/storeConnection", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                const storeResult = await storeResponse.json();
+
+                if (storeResponse.ok) {
+                    setMessage("Connection successful and stored!");
+                    sessionStorage.setItem("dbConnection", JSON.stringify(data));
+                    setTimeout(() => {
+                        navigate("/tables");
+                    }, 1000);
+                } else {
+                    setError("Connected but failed to store connection: " + storeResult.message);
+                }
             } else {
-                setError(result.message || "Failed to connect to database");
-                if (response.status === 401) {
+                setError(connectResult.message || "Failed to connect to database");
+                if (connectResponse.status === 401) {
                     navigate("/");
                 }
             }
         } catch (error) {
-            setError("Error connecting to the database");
+            setError("Error processing your request");
         }
     };
 

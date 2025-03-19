@@ -45,6 +45,8 @@ router.post("/login", async (req, res) => {
                     );
 
                     delete user.password;
+                    delete user.email;
+                    delete user.role_id;
 
                     return res.json({
                         success: true,

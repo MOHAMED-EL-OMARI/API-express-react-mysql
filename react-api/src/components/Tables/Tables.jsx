@@ -13,7 +13,7 @@ const Tables = () => {
     useEffect(() => {
         const connectionInfo = sessionStorage.getItem("dbConnection");
         if (!connectionInfo) {
-            navigate("/dbConnect");
+            navigate("/database");
             return;
         }
         fetchTableData();

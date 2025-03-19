@@ -9,6 +9,7 @@ const connectRouter = require("./routes/connect");
 const tablesRouter = require("./routes/tables");
 const logoutRoute = require("./routes/logout");
 const createApiRoute = require("./routes/createApi");
+const storeConnection = require("./routes/storeConnection");
 // Import dynamically created APIs
 const createdApis = require("./routeIndex");
 
@@ -26,6 +27,7 @@ app.use("/api", connectRouter);
 app.use("/api", tablesRouter);
 app.use("/api", logoutRoute);
 app.use("/api", createApiRoute);
+app.use("/api", storeConnection);
 // Use dynamically created APIs
 app.use("/api", createdApis);
 
