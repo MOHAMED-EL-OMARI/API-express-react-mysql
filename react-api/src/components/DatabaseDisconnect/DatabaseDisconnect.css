@@ -1,0 +1,18 @@
+.disconnect-button {
+    background-color: #ff9800;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 10px;
+}
+
+.disconnect-button:hover {
+    background-color: #f57c00;
+}
+
+.error-message {
+    color: #f44336;
+    margin: 10px 0;
+}

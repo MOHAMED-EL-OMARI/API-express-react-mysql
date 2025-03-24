@@ -3,13 +3,13 @@ const express = require('express');
 const router = express.Router();
 const { getConnection } = require('../dbConnection');
 
-router.get("/orders_total", (req, res) => {
+router.get("/categories_id", (req, res) => {
     const connection = getConnection();
     if (!connection) {
         return res.json({ message: "Not connected to any database!" });
     }
 
-    const query = "SELECT total FROM orders";
+    const query = "SELECT id FROM categories";
 
     connection.query(query, (err, results) => {
         if (err) {

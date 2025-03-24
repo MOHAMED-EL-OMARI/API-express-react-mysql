@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "nodemon --ext js,mjs,json,yaml --watch . --ignore node_modules/ --ignore connectionConfig.json index.js",
     "dev": "nodemon index.js"
   },
   "keywords": [],

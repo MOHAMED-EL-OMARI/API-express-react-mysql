@@ -1,0 +1,13 @@
+{
+  "verbose": true,
+  "watch": [
+    ".",
+    "createdApis/*",
+    "routes/*"
+  ],
+  "ext": "js,mjs,json",
+  "ignore": [
+    "node_modules/*",
+    "connectionConfig.json"
+  ]
+}

@@ -2,11 +2,13 @@ import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../authcontext";
 import "./Tables.css";
+import DatabaseDisconnect from '../DatabaseDisconnect/DatabaseDisconnect';
 
 const Tables = () => {
     const [tablesData, setTablesData] = useState([]);
     const [error, setError] = useState("");
     const [selectedColumns, setSelectedColumns] = useState({});
+    const [activeTable, setActiveTable] = useState(null);
     const navigate = useNavigate();
     const { logout } = useContext(AuthContext);
 
@@ -44,13 +46,45 @@ const Tables = () => {
     };
 
     const handleColumnSelect = (tableName, columnName) => {
-        setSelectedColumns((prev) => ({
-            ...prev,
-            [tableName]: {
-                ...prev[tableName],
-                [columnName]: !prev[tableName][columnName],
-            },
-        }));
+        // If no active table or this is the active table
+        if (!activeTable || activeTable === tableName) {
+            setActiveTable(tableName);
+            setSelectedColumns((prev) => ({
+                ...prev,
+                [tableName]: {
+                    ...prev[tableName],
+                    [columnName]: !prev[tableName][columnName],
+                },
+            }));
+            
+            // If all columns are deselected, clear the active table
+            const updatedSelection = {
+                ...selectedColumns,
+                [tableName]: {
+                    ...selectedColumns[tableName],
+                    [columnName]: !selectedColumns[tableName][columnName]
+                }
+            };
+            
+            const hasSelectedColumns = Object.values(updatedSelection[tableName]).some(value => value);
+            if (!hasSelectedColumns) {
+                setActiveTable(null);
+            }
+        }
+    };
+
+    // Add a function to reset selection
+    const resetSelection = () => {
+        setActiveTable(null);
+        // Reset all selections to false
+        const resetSelection = {};
+        Object.keys(selectedColumns).forEach(tableName => {
+            resetSelection[tableName] = {};
+            Object.keys(selectedColumns[tableName]).forEach(columnName => {
+                resetSelection[tableName][columnName] = false;
+            });
+        });
+        setSelectedColumns(resetSelection);
     };
 
     const handleGenerateAPI = async () => {
@@ -101,7 +135,7 @@ const Tables = () => {
                         tablesData.map((table, index) => (
                             <div key={index} className="table-section">
                                 <div className="table-scroll">
-                                    <table>
+                                    <table className={activeTable && activeTable !== table.tableName ? "disabled-table" : ""}>
                                         <tbody>
                                             <tr className="table-name-row">
                                                 <td
@@ -110,6 +144,9 @@ const Tables = () => {
                                                     }
                                                 >
                                                     {table.tableName}
+                                                    {activeTable === table.tableName && (
+                                                        <span className="active-table-indicator"> (Active)</span>
+                                                    )}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -123,6 +160,10 @@ const Tables = () => {
                                                                         .tableName
                                                                 ]?.[column.name]
                                                                     ? "selected"
+                                                                    : ""
+                                                            } ${
+                                                                activeTable && activeTable !== table.tableName
+                                                                    ? "disabled"
                                                                     : ""
                                                             }`}
                                                             onClick={() =>
@@ -147,6 +188,7 @@ const Tables = () => {
             )}
             <div className="navigation-buttons">
                 <button onClick={handleGenerateAPI}>Generate API</button>
+                <DatabaseDisconnect />
             </div>
             <button onClick={logout} className="logout-button">
                 Logout

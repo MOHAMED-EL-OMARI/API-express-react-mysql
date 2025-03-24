@@ -47,8 +47,8 @@ const DatabaseConnection = () => {
             const connectResult = await connectResponse.json();
 
             if (connectResponse.ok) {
-                // If connection successful, store the connection details
-                const storeResponse = await fetch("http://localhost:5000/api/storeConnection", {
+                // If connection successful, store the application details
+                const storeResponse = await fetch("http://localhost:5000/api/storeApplication", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

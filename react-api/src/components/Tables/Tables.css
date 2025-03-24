@@ -61,10 +61,14 @@ th.selected:hover {
 }
 
 .navigation-buttons {
-    margin-top: 20px;
     display: flex;
-    justify-content: center;
     gap: 10px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.navigation-buttons button {
+    min-width: 120px;
 }
 
 button {
@@ -75,6 +79,8 @@ button {
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s;
+    height: 36px;
+    margin: 10px;
 }
 
 button:hover {
@@ -95,4 +101,21 @@ button:hover {
     color: #dc3545;
     text-align: center;
     margin: 10px 0;
+}
+
+
+.disabled-table {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.column-header.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.active-table-indicator {
+    color: #4CAF50;
+    font-weight: bold;
+    margin-left: 10px;
 }
