@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 const { getConnection } = require("../db");
 
 router.post("/login", async (req, res) => {
-    const { nom, password } = req.body;
+    const { name, password } = req.body;
     const connection = getConnection();
 
     if (!connection) {
@@ -16,9 +16,9 @@ router.post("/login", async (req, res) => {
     }
 
     try {
-        const query = "SELECT * FROM utilisateur WHERE nom = ?";
+        const query = "SELECT * FROM users WHERE name = ?";
 
-        connection.query(query, [nom], async (err, results) => {
+        connection.query(query, [name], async (err, results) => {
             if (err) {
                 return res.status(500).json({
                     success: false,
@@ -29,7 +29,7 @@ router.post("/login", async (req, res) => {
             if (results.length === 0) {
                 return res.status(401).json({
                     success: false,
-                    message: "Invalid nom or password",
+                    message: "Invalid name or password",
                 });
             }
 
@@ -39,7 +39,7 @@ router.post("/login", async (req, res) => {
                 const isMatch = await bcrypt.compare(password, user.password);
                 if (isMatch) {
                     const token = jwt.sign(
-                        { id: user.id, nom: user.nom },
+                        { id: user.id, name: user.name },
                         process.env.JWT_SECRET,
                         { expiresIn: "24h" }
                     );
@@ -57,7 +57,7 @@ router.post("/login", async (req, res) => {
 
                 return res.status(401).json({
                     success: false,
-                    message: "Invalid nom or password",
+                    message: "Invalid name or password",
                 });
             } catch (bcryptError) {
                 console.error("Password comparison error:", bcryptError);

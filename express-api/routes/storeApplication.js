@@ -11,7 +11,7 @@ router.post('/storeApplication', (req, res) => {
     }
 
     // First check if this connection already exists
-    const checkQuery = `SELECT * FROM application WHERE host = ? AND user = ? AND database_name = ?`;
+    const checkQuery = `SELECT * FROM applications WHERE host = ? AND user = ? AND database_name = ?`;
     connection.query(checkQuery, [host, user, database], (err, results) => {
         if (err) {
             return res.status(500).json({
@@ -32,7 +32,7 @@ router.post('/storeApplication', (req, res) => {
         }
 
         // If connection doesn't exist, insert it
-        const insertQuery = `INSERT INTO application SET ?`;
+        const insertQuery = `INSERT INTO applications SET ?`;
         connection.query(insertQuery, { 
             host, 
             user, 

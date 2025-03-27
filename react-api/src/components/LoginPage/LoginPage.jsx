@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom"; // Pour la redirection
 import { AuthContext } from "../authcontext";
 
 const LoginPage = () => {
-    const [nom, setNom] = useState("");
+    const [name, setNom] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false); // Indicateur de chargement
@@ -21,7 +21,7 @@ const LoginPage = () => {
             const response = await axios.post(
                 "http://localhost:5000/api/login",
                 {
-                    nom,
+                    name,
                     password,
                 }
             );
@@ -65,7 +65,7 @@ const LoginPage = () => {
                         <label>Nom</label>
                         <input
                             type="text"
-                            value={nom}
+                            value={name}
                             onChange={(e) => setNom(e.target.value)}
                             required
                         />

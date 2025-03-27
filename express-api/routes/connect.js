@@ -1,31 +1,18 @@
 const express = require("express");
 const router = express.Router();
-const { connectDB, getConnection } = require("../dbConnection");
+const { connectDB, getConnection, disconnectDB } = require("../dbConnection");
 const auth = require("../middleware/auth");
 
-// Add disconnect function
-const disconnectDB = () => {
-    const connection = getConnection();
-    if (connection) {
-        connection.end();
-        return true;
-    }
-    return false;
-};
 
-router.post("/connect", auth, (req, res) => {
+router.post("/connect", auth, async (req, res) => {
     const { host, user, password, database, port } = req.body;
 
     try {
         // Create the connection using the values from the request
-        connectDB({ host, user, password, database, port });
-
-        // Check if connection was successful
-        if (require('../dbConnection').getConnection()) {
-            res.json({ message: "Connected successfully!" });
-        } else {
-            res.status(500).json({ message: "Failed to establish connection" });
-        }
+        await connectDB({ host, user, password, database, port });
+        
+        // If we get here, connection was successful
+        res.json({ message: "Connected successfully!" });
     } catch (error) {
         res.status(500).json({ message: "Connection error: " + error.message });
     }

@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 
 // The password you want to hash
-const mypass = "12345";
+const mypass = "1234";
 
 // Set the number of salt rounds for bcrypt (10 is commonly used)
 const saltRounds = 2;

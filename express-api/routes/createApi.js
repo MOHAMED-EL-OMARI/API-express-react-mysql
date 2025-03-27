@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const fs = require("fs");
 const path = require("path");
+const ApiController = require('../controllers/apiController');
 
 function updateRouteIndex(newRoutes) {
     // Create a routes index file that will import and export all routes
@@ -54,7 +55,7 @@ module.exports = router;`;
     // The loadCreatedApis function will automatically load all APIs in the createdApis directory
 }
 
-function generateExpressApi(tableName, selectedColumns) {
+function generateExpressApi(tableName, selectedColumns, token) {
     if (
         !tableName ||
         !selectedColumns ||
@@ -66,26 +67,73 @@ function generateExpressApi(tableName, selectedColumns) {
         );
     }
 
+    // Read connection config
+    let connectionConfig;
+    try {
+        const configPath = path.join(__dirname, "..", "connectionConfig.json");
+        if (fs.existsSync(configPath)) {
+            connectionConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        } else {
+            throw new Error("Connection configuration not found");
+        }
+    } catch (error) {
+        throw new Error(`Failed to read connection config: ${error.message}`);
+    }
+
     const columnNames = selectedColumns.join("_");
     const endpoint = `/${tableName.toLowerCase()}_${columnNames.toLowerCase()}`;
     const columnsString = selectedColumns.join(", ");
-    const query = `SELECT ${columnsString} FROM ${tableName}`;
 
     const apiCode = `
 const express = require('express');
 const router = express.Router();
-const { getConnection } = require('../dbConnection');
+const mysql = require('mysql2');
 
-router.get("${endpoint}", (req, res) => {
+// Static connection configuration
+const connectionConfig = {
+    host: "${connectionConfig.host}",
+    user: "${connectionConfig.user}",
+    password: "${connectionConfig.password}",
+    database: "${connectionConfig.database}",
+    port: ${connectionConfig.port}
+};
+
+// Function to get database connection
+const getConnection = () => {
+    try {
+        return mysql.createConnection(connectionConfig);
+    } catch (error) {
+        console.error("Error creating connection:", error);
+        return null;
+    }
+};
+
+// Custom auth middleware for this specific API
+const authApi = (req, res, next) => {
+    const token = req.header('Api-Token');
+    if (!token || token !== '${token}') {
+        return res.status(401).json({ 
+            success: false, 
+            message: 'Invalid API token' 
+        });
+    }
+    next();
+};
+
+router.get("${endpoint}", authApi, (req, res) => {
     const connection = getConnection();
     if (!connection) {
-        return res.json({ message: "Not connected to any database!" });
+        return res.json({ 
+            success: false,
+            message: "Failed to connect to database" 
+        });
     }
 
-    const query = "${query}";
+    const query = "SELECT ${columnsString} FROM ${tableName}";
 
     connection.query(query, (err, results) => {
         if (err) {
+            connection.end();
             return res.json({ 
                 success: false,
                 message: "Error fetching data: " + err.message 
@@ -93,12 +141,14 @@ router.get("${endpoint}", (req, res) => {
         }
 
         if (results.length === 0) {
+            connection.end();
             return res.json({ 
                 success: false,
                 message: "No data found" 
             });
         }
 
+        connection.end();
         return res.json({ 
             success: true,
             data: results
@@ -123,7 +173,7 @@ module.exports = router;`;
             if (err) {
                 reject(new Error(`Failed to create API file: ${err.message}`));
             } else {
-                resolve({ fileName, endpoint, query });
+                resolve({ fileName, endpoint, tableName, columns: selectedColumns });
             }
         });
     });
@@ -145,8 +195,26 @@ router.post("/createApi", async (req, res) => {
         for (const [tableName, columns] of Object.entries(selectedColumns)) {
             if (columns.length > 0) {
                 try {
-                    const result = await generateExpressApi(tableName, columns);
-                    results.push(result);
+                    // Generate the API file and get its data
+                    const apiData = await generateExpressApi(tableName, columns);
+                    
+                    // Store API data in database and get the token
+                    const storedApi = await ApiController.createApi(apiData);
+                    
+                    if (storedApi.exists) {
+                        // If API exists, just add it to results without regenerating
+                        results.push({
+                            fileName: `${tableName.toLowerCase()}_${columns.join('_').toLowerCase()}.js`,
+                            endpoint: storedApi.endpoint,
+                            token: storedApi.token,
+                            url: storedApi.url,
+                            message: "API already exists"
+                        });
+                    } else {
+                        // If new API, regenerate with token and add to results
+                        await generateExpressApi(tableName, columns, storedApi.token);
+                        results.push(storedApi);
+                    }
                 } catch (err) {
                     return res.status(500).json({
                         success: false,
@@ -156,7 +224,7 @@ router.post("/createApi", async (req, res) => {
             }
         }
 
-        // Update route index with new routes
+        // Update route index
         try {
             updateRouteIndex(results);
         } catch (err) {
@@ -168,17 +236,19 @@ router.post("/createApi", async (req, res) => {
 
         res.json({
             success: true,
-            message: "APIs created successfully!",
+            message: "APIs processed successfully!",
             apis: results.map((r) => ({
                 fileName: r.fileName,
                 endpoint: r.endpoint,
-                query: r.query,
+                token: r.token,
+                url: r.url,
+                message: r.message || "API created successfully"
             })),
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: "Error creating API: " + error.message,
+            message: "Error processing API: " + error.message,
         });
     }
 });

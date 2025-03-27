@@ -7,17 +7,23 @@ let currentConfig;
 
 // Function to establish the connection
 const connectDB = (config) => {
-    currentConfig = config;
-    connection = mysql.createConnection(config);
+    return new Promise((resolve, reject) => {
+        currentConfig = config;
+        connection = mysql.createConnection(config);
 
-    connection.connect((err) => {
-        if (err) {
-            console.error("Connection failed: " + err.message);
-        } else {
-            console.log("Connected successfully!");
-            // Store the current connection config
-            saveConnectionConfig(config);
-        }
+        connection.connect((err) => {
+            if (err) {
+                console.error("Connection failed: " + err.message);
+                connection = null;
+                currentConfig = null;
+                reject(err);
+            } else {
+                console.log("Connected successfully!");
+                // Store the current connection config
+                saveConnectionConfig(config);
+                resolve(connection);
+            }
+        });
     });
 };
 
@@ -62,7 +68,9 @@ const disconnectDB = () => {
         if (fs.existsSync(configPath)) {
             fs.unlinkSync(configPath);
         }
+        return true; // Return true to indicate successful disconnection
     }
+    return false; // Return false if there was no connection to disconnect
 };
 
 // Update the exports
