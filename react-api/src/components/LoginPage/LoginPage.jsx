@@ -9,13 +9,13 @@ const LoginPage = () => {
     const [name, setNom] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false); // Indicateur de chargement
-    const navigate = useNavigate(); // Hook pour la navigation
-    const { login } = useContext(AuthContext); // Get login function
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+    const { login } = useContext(AuthContext);
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        setLoading(true); // Add loading state when submitting
+        setLoading(true);
 
         try {
             const response = await axios.post(
@@ -28,16 +28,20 @@ const LoginPage = () => {
 
             if (response.data.success) {
                 login(response.data.user, response.data.token);
-                navigate("/database");
+                // Redirect based on user role
+                if (response.data.user.role === 'admin') {
+                    navigate("/dashboard");
+                } else {
+                    navigate("/database");
+                }
             } else {
                 setError("Nom ou mot de passe incorrect");
-                setLoading(false); // Reset loading state
+                setLoading(false);
             }
         } catch (error) {
             console.error("Erreur lors de la connexion :", error);
-            setLoading(false); // Reset loading state
+            setLoading(false);
 
-            // Gestion des erreurs spécifiques
             if (error.response) {
                 if (error.response.status === 401) {
                     setError("Nom ou mot de passe incorrect");
@@ -45,12 +49,10 @@ const LoginPage = () => {
                     setError("Une erreur s'est produite lors de la connexion");
                 }
             } else if (error.request) {
-                // Pas de réponse du serveur
                 setError(
                     "Le serveur ne répond pas. Veuillez réessayer plus tard."
                 );
             } else {
-                // Erreur inattendue
                 setError("Une erreur inattendue s'est produite");
             }
         }

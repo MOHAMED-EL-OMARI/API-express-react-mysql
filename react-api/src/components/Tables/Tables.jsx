@@ -10,7 +10,7 @@ const Tables = () => {
     const [selectedColumns, setSelectedColumns] = useState({});
     const [activeTable, setActiveTable] = useState(null);
     const navigate = useNavigate();
-    const { logout } = useContext(AuthContext);
+    const { token, user, logout } = useContext(AuthContext);
 
     useEffect(() => {
         const connectionInfo = sessionStorage.getItem("dbConnection");
@@ -18,17 +18,30 @@ const Tables = () => {
             navigate("/database");
             return;
         }
+        if (!token) {
+            navigate("/");
+            return;
+        }
         fetchTableData();
-    }, [navigate]);
+    }, [navigate, token]);
 
     const fetchTableData = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/tables");
+            const response = await fetch("http://localhost:5000/api/tables", {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 401 || response.status === 403) {
+                logout();
+                return;
+            }
+
             const data = await response.json();
 
             if (data.tablesData) {
                 setTablesData(data.tablesData);
-                // Initialize selected columns state
                 const initialSelection = {};
                 data.tablesData.forEach((table) => {
                     initialSelection[table.tableName] = {};
@@ -107,13 +120,21 @@ const Tables = () => {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}` // Add authorization header
                     },
                     body: JSON.stringify({ selectedColumns: selectedData }),
                 }
             );
+
+            if (response.status === 401 || response.status === 403) {
+                logout();
+                return;
+            }
+
             const result = await response.json();
             if (result.success) {
                 alert("API generated successfully!");
+                resetSelection(); // Reset selection after successful API generation
             } else {
                 setError(result.message);
             }

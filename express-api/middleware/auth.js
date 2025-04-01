@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken");
 
 module.exports = async (req, res, next) => {
     try {
-        // Get token from header Authorization
         const authHeader = req.header("Authorization");
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return res.status(401).json({ message: "Access denied, invalid token format" });
@@ -15,7 +14,6 @@ module.exports = async (req, res, next) => {
         }
 
         try {
-            // Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             req.user = decoded;
             next();
@@ -28,3 +26,5 @@ module.exports = async (req, res, next) => {
         res.status(500).json({ message: "Server error during authentication" });
     }
 };
+
+// Create a separate file for admin authentication

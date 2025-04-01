@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { getConnection } = require("../dbConnection"); // Import the getConnection function
+const { getConnection } = require("../dbConnection");
+const auth = require("../middleware/auth");
 
-// Route to get table data
-router.get("/tables", (req, res) => {
+router.get("/tables", auth, (req, res) => {
     const connection = getConnection();
     if (!connection) {
         return res.json({ message: "Not connected to any database!" });

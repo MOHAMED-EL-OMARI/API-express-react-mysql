@@ -38,19 +38,29 @@ router.post("/login", async (req, res) => {
             try {
                 const isMatch = await bcrypt.compare(password, user.password);
                 if (isMatch) {
+                    // Inside your login route
                     const token = jwt.sign(
-                        { id: user.id, name: user.name },
+                        { 
+                            userId: user.id,
+                            role: user.role,
+                            name: user.name 
+                        },
                         process.env.JWT_SECRET,
-                        { expiresIn: "24h" }
+                        { expiresIn: '24h' }
                     );
 
+                    // Remove sensitive information but keep the role
                     delete user.password;
                     delete user.email;
-                    delete user.role_id;
+                    // Remove this line to keep the role information
+                    // delete user.role_id;
 
                     return res.json({
                         success: true,
-                        user,
+                        user: {
+                            ...user,
+                            role: user.role // Explicitly include role in response
+                        },
                         token,
                     });
                 }

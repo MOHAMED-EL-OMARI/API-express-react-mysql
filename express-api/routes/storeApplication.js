@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { getConnection } = require('../db');
+const auth = require("../middleware/auth");
 
-router.post('/storeApplication', (req, res) => {
+router.post('/storeApplication', auth, (req, res) => {
     const { host, user, password, database, port } = req.body;
     const connection = getConnection();
 

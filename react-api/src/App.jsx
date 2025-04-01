@@ -5,6 +5,7 @@ import DatabaseConnect from "./components/DatabaseConnect/DatabaseConnect";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Tables from "./components/Tables/Tables";
 import ForgotPassword from "./components/ForgotPassword/ForgotPassword";
+import Dashboard from "./components/Dashboard/Dashboard";
 
 function App() {
     return (
@@ -13,6 +14,14 @@ function App() {
                 <Routes>
                     <Route path="/" element={<LoginPage />} />
                     <Route path="/forgotPaasword" element={<ForgotPassword />} />
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <ProtectedRoute adminOnly={true}>
+                                <Dashboard />
+                            </ProtectedRoute>
+                        }
+                    />
                     <Route
                         path="/database"
                         element={
